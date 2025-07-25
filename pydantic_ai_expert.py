@@ -386,3 +386,29 @@ async def list_treatments_by_category(ctx: RunContext[ClinicAIDeps], category: s
     except Exception as e:
         print(f"Error listing treatments: {e}")
         return "Es gab einen Fehler beim Abrufen der Behandlungsliste."
+
+@clinic_ai_expert.tool
+async def web_search(ctx: RunContext[ClinicAIDeps], user_query: str) -> str:
+    """
+    Search the web for up-to-date information using OpenAI's web search tool.
+    """
+    try:
+        client = ctx.deps.openai_client
+        response = await client.responses.create(
+            model="gpt-4.1",
+            tools=[{"type": "web_search_preview"}],
+            input=user_query
+        )
+        output_text = getattr(response, "output_text", None)
+        if not output_text:
+            for item in getattr(response, "output", []):
+                if item.get("type") == "message":
+                    content = item.get("content", [])
+                    for c in content:
+                        if c.get("type") == "output_text":
+                            output_text = c.get("text")
+                            break
+        return output_text or "Keine Web-Ergebnisse gefunden."
+    except Exception as e:
+        print(f"Error during web search: {e}")
+        return "Es gab einen Fehler bei der Websuche."
