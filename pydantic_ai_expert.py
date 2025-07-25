@@ -412,3 +412,6 @@ async def web_search(ctx: RunContext[ClinicAIDeps], user_query: str) -> str:
                         return content_item.get("text", "Keine Web-Ergebnisse gefunden.")
         
         return "Keine Web-Ergebnisse gefunden."
+    except Exception as e:
+        print(f"Web Search Error: {str(e)}")
+        return f"Es gab einen Fehler bei der Websuche: {str(e)}"
