@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hautlabor Chatbot</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+    <!-- Your website content goes here -->
+    
+    <script>
+    // Add CSS
+    const style = document.createElement('style');
+    style.textContent = `
+    :root {
+        --chat-primary-color: #c5a47e;
+        --chat-text-color: #333333;
+        --chat-light-bg: #f8f8f8;
+        --chat-white: #ffffff;
+        --chat-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        --chat-transition: all 0.3s ease;
+    }
+
+    .chat-widget {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+        font-family: 'Montserrat', sans-serif;
+    }
+
+    .chat-button {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background-color: var(--chat-primary-color);
+        color: var(--chat-white);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        box-shadow: var(--chat-shadow);
+        transition: var(--chat-transition);
+        border: none;
+    }
+
+    .chat-button:hover {
+        transform: scale(1.05);
+    }
+
+    .chat-button svg {
+        width: 24px;
+        height: 24px;
+        fill: var(--chat-white);
+    }
+
+    .chat-popup {
+        position: absolute;
+        bottom: 80px;
+        right: 20px;
+        width: 320px;
+        background-color: var(--chat-white);
+        border-radius: 10px;
+        box-shadow: var(--chat-shadow);
+        overflow: hidden;
+        display: none;
+        flex-direction: column;
+        transition: var(--chat-transition);
+        transform-origin: bottom right;
+    }
+
+    .chat-popup.active {
+        display: flex;
+        animation: chatPopIn 0.3s forwards;
+    }
+
+    @keyframes chatPopIn {
+        0% { transform: scale(0.9); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+
+    .chat-header {
+        background-color: var(--chat-primary-color);
+        color: var(--chat-white);
+        padding: 15px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .chat-header-buttons {
+        display: flex;
+        align-items: center;
+        gap: 15px; /* Space between buttons */
+    }
+
+    .chat-header h3 {
+        margin: 0;
+        font-weight: 500;
+        font-size: 16px;
+    }
+
+    .chat-header-button {
+        background: none;
+        border: none;
+        color: var(--chat-white);
+        cursor: pointer;
+        padding: 0;
+        opacity: 0.8;
+        transition: opacity 0.2s ease;
+    }
+    
+    .chat-header-button:hover {
+        opacity: 1;
+    }
+
+    .chat-body {
+        height: 300px;
+        overflow-y: auto;
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+        scroll-behavior: smooth;
+    }
+
+    .message {
+        max-width: 80%;
+        padding: 10px 15px;
+        margin-bottom: 10px;
+        border-radius: 18px;
+        line-height: 1.4;
+        font-size: 14px;
+        word-wrap: break-word;
+    }
+    
+    .message p { margin: 0 0 5px; }
+    .message p:last-child { margin-bottom: 0; }
+    .message ul, .message ol { margin: 5px 0 5px 20px; padding: 0; }
+    .message li { margin-bottom: 3px; }
+    .message a { color: var(--chat-primary-color); text-decoration: underline; }
+    .message.user-message a { color: var(--chat-white); }
+
+
+    .bot-message {
+        background-color: var(--chat-light-bg);
+        color: var(--chat-text-color);
+        align-self: flex-start;
+        border-bottom-left-radius: 5px;
+    }
+
+    .user-message {
+        background-color: var(--chat-primary-color);
+        color: var(--chat-white);
+        align-self: flex-end;
+        border-bottom-right-radius: 5px;
+    }
+
+    .typing-indicator {
+        padding: 8px 15px;
+        font-style: italic;
+        opacity: 0.7;
+    }
+
+    .chat-input {
+        display: flex;
+        padding: 10px;
+        border-top: 1px solid #eee;
+        align-items: flex-end;
+    }
+
+    #userInput {
+        flex: 1;
+        padding: 10px 15px;
+        border: 1px solid #ddd;
+        border-radius: 20px;
+        font-family: 'Montserrat', sans-serif;
+        font-size: 14px;
+        outline: none;
+        resize: none;
+        overflow-y: auto;
+        max-height: 80px;
+        line-height: 1.4;
+        box-sizing: border-box;
+    }
+
+    #userInput:focus {
+        border-color: var(--chat-primary-color);
+    }
+
+    .send-button {
+        background-color: var(--chat-primary-color);
+        color: var(--chat-white);
+        border: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        margin-left: 10px;
+        cursor: pointer;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transition: var(--chat-transition);
+        flex-shrink: 0;
+    }
+
+    .send-button:hover {
+        background-color: #b39169;
+    }
+    
+    .sources {
+        font-size: 12px;
+        color: #666;
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid #eee;
+    }
+    
+    .sources-title {
+        font-weight: 500;
+        margin-bottom: 4px;
+    }
+    
+    .source-link {
+        display: block;
+        color: var(--chat-primary-color);
+        text-decoration: none;
+        margin-bottom: 2px;
+        font-size: 11px;
+        opacity: 0.8;
+    }
+    
+    .source-link:hover {
+        opacity: 1;
+        text-decoration: underline;
+    }
+    
+    /* WhatsApp/Telegram Style Link Preview */
+    .social-media-link {
+        display: block;
+        margin: 8px 0;
+        border-radius: 8px;
+        text-decoration: none;
+        color: var(--chat-text-color);
+        background: var(--chat-white);
+        border: 1px solid #e0e0e0;
+        transition: var(--chat-transition);
+        max-width: 280px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .social-media-link:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        text-decoration: none;
+    }
+    
+    .social-media-preview {
+        display: flex;
+        align-items: stretch;
+    }
+    
+    .social-media-thumbnail {
+        width: 80px;
+        height: 80px;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    
+    .social-media-content {
+        flex: 1;
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-width: 0;
+    }
+    
+    .social-media-title {
+        font-weight: 600;
+        font-size: 14px;
+        margin-bottom: 4px;
+        color: var(--chat-text-color);
+        line-height: 1.3;
+    }
+    
+    .social-media-description {
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 6px;
+        line-height: 1.3;
+    }
+    
+    .social-media-url {
+        font-size: 11px;
+        color: #999;
+        word-break: break-all;
+        font-family: monospace;
+    }
+    
+    .social-media-link.instagram .social-media-thumbnail {
+        background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+    }
+    
+    .social-media-link.facebook .social-media-thumbnail {
+        background: #1877f2;
+    }
+    
+    .social-media-link.tiktok .social-media-thumbnail {
+        background: #000000;
+    }
+    
+    .social-media-icon {
+        width: 32px;
+        height: 32px;
+        fill: white;
+    }
+    `;
+    document.head.appendChild(style);
+
+    // Add HTML
+    const chatWidget = document.createElement('div');
+    chatWidget.className = 'chat-widget';
+    chatWidget.innerHTML = `
+        <div class="chat-popup" id="chatPopup">
+            <div class="chat-header">
+                <h3>Hautlabor Assistent</h3>
+                <div class="chat-header-buttons">
+                    <button class="chat-header-button" id="restartChat" title="Chat neu starten">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                            <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                        </svg>
+                    </button>
+                    <button class="chat-header-button" id="closeChat" title="Chat schließen">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="chat-body" id="chatBody">
+                <!-- Initial message will be added by JS -->
+            </div>
+            <div class="chat-input">
+                <textarea id="userInput" placeholder="Ihre Nachricht..." rows="1"></textarea>
+                <button class="send-button" id="sendButton"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.26.41a.5.5 0 0 0 .886-.083l6-15Zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471-.47 1.178Z"/></svg></button>
+            </div>
+        </div>
+        <button class="chat-button" id="chatButton"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17,7H7A1,1,0,0,0,7,9H17a1,1,0,0,0,0-2Zm0,4H7A1,1,0,0,0,0,2H17a1,1,0,0,0,0-2Zm2-9H5A3,3,0,0,0,2,5V15a3,3,0,0,0,3,3H16.59l3.7,3.71A1,1,0,0,0,21,22a.84.84,0,0,0,.38-.08A1,1,0,0,0,22,21V5A3,3,0,0,0,19,2Zm1,16.59-2.29-2.3A1,1,0,0,0,17,16H5a1,1,0,0,1-1-1V5a1,1,0,0,1,5-1H19a1,1,0,0,1,1,1Z"></path></svg></button>
+    `;
+    document.body.appendChild(chatWidget);
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatButton = document.getElementById('chatButton');
+        const closeChat = document.getElementById('closeChat');
+        const chatPopup = document.getElementById('chatPopup');
+        const userInput = document.getElementById('userInput');
+        const sendButton = document.getElementById('sendButton');
+        const chatBody = document.getElementById('chatBody');
+        const restartChat = document.getElementById('restartChat');
+        
+        const API_URL = '/api/chat';
+        const WELCOME_MESSAGE = 'Hallo! Willkommen beim Hautlabor. Wie kann ich Ihnen heute helfen?';
+
+        function initializeChat() {
+            chatBody.innerHTML = '';
+            addMessage(WELCOME_MESSAGE, 'bot');
+            userInput.value = '';
+            userInput.style.height = 'auto';
+        }
+        
+        chatButton.addEventListener('click', function() {
+            chatPopup.classList.toggle('active');
+            if (chatPopup.classList.contains('active')) {
+                setTimeout(() => userInput.focus(), 300);
+            }
+        });
+        
+        closeChat.addEventListener('click', () => chatPopup.classList.remove('active'));
+        restartChat.addEventListener('click', initializeChat);
+        
+        async function sendMessage() {
+            const message = userInput.value.trim();
+            if (message === '') return;
+            
+            addMessage(message, 'user');
+            userInput.value = '';
+            userInput.style.height = 'auto';
+            
+            const typingIndicator = document.createElement('div');
+            typingIndicator.className = 'message bot-message typing-indicator';
+            typingIndicator.textContent = 'Schreibt...';
+            chatBody.appendChild(typingIndicator);
+            chatBody.scrollTop = chatBody.scrollHeight;
+            
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: message }),
+                });
+                const data = await response.json();
+                chatBody.removeChild(typingIndicator);
+                addMessage(data.message, 'bot', data.sources);
+            } catch (error) {
+                chatBody.removeChild(typingIndicator);
+                addMessage('Entschuldigung, es gab einen Fehler bei der Verbindung zum Server.', 'bot');
+                console.error('Error:', error);
+            }
+        }
+        
+        // Function to detect and format social media links
+        function formatSocialMediaLinks(text) {
+            const socialMediaPatterns = [
+                {
+                    pattern: /(https?:\/\/(?:www\.)?instagram\.com\/[^\s]+)/gi,
+                    platform: 'instagram',
+                    title: 'Instagram',
+                    description: 'Folgen Sie uns für spannende Einblicke in unsere Behandlungen und Neuigkeiten aus dem Hautlabor.',
+                    icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>`
+                },
+                {
+                    pattern: /(https?:\/\/(?:www\.)?facebook\.com\/[^\s]+)/gi,
+                    platform: 'facebook',
+                    title: 'Facebook',
+                    description: 'Besuchen Sie unsere Facebook-Seite für aktuelle Informationen und Community-Updates.',
+                    icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>`
+                },
+                {
+                    pattern: /(https?:\/\/(?:www\.)?tiktok\.com\/[^\s]+)/gi,
+                    platform: 'tiktok',
+                    title: 'TikTok',
+                    description: 'Entdecken Sie unsere TikTok-Videos mit Tipps und Einblicken in die ästhetische Medizin.',
+                    icon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>`
+                }
+            ];
+
+            let formattedText = text;
+            let socialMediaLinks = [];
+
+            // Find all social media links in the text
+            socialMediaPatterns.forEach(({ pattern, platform, title, description, icon }) => {
+                const matches = text.match(pattern);
+                if (matches) {
+                    matches.forEach(url => {
+                        socialMediaLinks.push({
+                            url: url,
+                            platform: platform,
+                            title: title,
+                            description: description,
+                            icon: icon
+                        });
+                        // Replace the URL in text with a placeholder
+                        formattedText = formattedText.replace(url, `[SOCIAL_MEDIA_LINK:${platform}:${url}]`);
+                    });
+                }
+            });
+
+            return { formattedText, socialMediaLinks };
+        }
+
+        function addMessage(text, sender, sources = []) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', sender === 'user' ? 'user-message' : 'bot-message');
+            
+            // Format social media links if it's a bot message
+            let processedText = text;
+            let socialMediaLinks = [];
+            
+            if (sender === 'bot') {
+                const result = formatSocialMediaLinks(text);
+                processedText = result.formattedText;
+                socialMediaLinks = result.socialMediaLinks;
+            }
+            
+            // Parse markdown and set the content
+            messageDiv.innerHTML = marked.parse(processedText);
+            
+            // Replace social media placeholders with formatted links
+            if (socialMediaLinks.length > 0) {
+                socialMediaLinks.forEach(({ url, platform, title, description, icon }) => {
+                    const placeholder = `[SOCIAL_MEDIA_LINK:${platform}:${url}]`;
+                    const socialMediaElement = document.createElement('a');
+                    socialMediaElement.href = url;
+                    socialMediaElement.target = '_blank';
+                    socialMediaElement.rel = 'noopener noreferrer';
+                    socialMediaElement.className = `social-media-link ${platform}`;
+                    
+                    socialMediaElement.innerHTML = `
+                        <div class="social-media-preview">
+                            <div class="social-media-thumbnail">
+                                ${icon}
+                            </div>
+                            <div class="social-media-content">
+                                <div class="social-media-title">${title}</div>
+                                <div class="social-media-description">${description}</div>
+                                <div class="social-media-url">${url}</div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Replace the placeholder in the message
+                    const textNodes = Array.from(messageDiv.childNodes);
+                    textNodes.forEach(node => {
+                        if (node.nodeType === Node.TEXT_NODE && node.textContent.includes(placeholder)) {
+                            const parts = node.textContent.split(placeholder);
+                            const fragment = document.createDocumentFragment();
+                            
+                            parts.forEach((part, index) => {
+                                if (part) {
+                                    fragment.appendChild(document.createTextNode(part));
+                                }
+                                if (index < parts.length - 1) {
+                                    fragment.appendChild(socialMediaElement.cloneNode(true));
+                                }
+                            });
+                            
+                            node.parentNode.replaceChild(fragment, node);
+                        }
+                    });
+                });
+            }
+            
+            // Find all regular links created by marked.js and make them open in a new tab
+            const regularLinks = messageDiv.querySelectorAll('a:not(.social-media-link)');
+            regularLinks.forEach(link => {
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer'; // Good practice for security
+            });
+            
+            if (sender === 'bot' && sources && sources.length > 0) {
+                const sourcesDiv = document.createElement('div');
+                sourcesDiv.classList.add('sources');
+                const sourcesTitle = document.createElement('div');
+                sourcesTitle.classList.add('sources-title');
+                sourcesTitle.textContent = '📚 Quellen:';
+                sourcesDiv.appendChild(sourcesTitle);
+                sources.forEach((source, index) => {
+                    const sourceLink = document.createElement('a');
+                    sourceLink.classList.add('source-link');
+                    sourceLink.href = source.startsWith('http') ? source : '#';
+                    sourceLink.target = '_blank'; // This was already correct
+                    sourceLink.rel = 'noopener noreferrer'; // Add for security and consistency
+                    sourceLink.textContent = `${index + 1}. ${source}`;
+                    sourcesDiv.appendChild(sourceLink);
+                });
+                messageDiv.appendChild(sourcesDiv);
+            }
+            
+            chatBody.appendChild(messageDiv);
+            
+            if (sender === 'bot') {
+                messageDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else {
+                chatBody.scrollTop = chatBody.scrollHeight;
+            }
+        }
+        
+        userInput.addEventListener('input', () => {
+            userInput.style.height = 'auto';
+            userInput.style.height = (userInput.scrollHeight) + 'px';
+        });
+
+        userInput.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        });
+        
+        sendButton.addEventListener('click', sendMessage);
+        
+        initializeChat();
+    });
+    </script>
+</body>
+</html> 
