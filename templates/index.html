@@ -418,7 +418,6 @@
         const WELCOME_MESSAGE = 'Hallo! Willkommen beim Hautlabor. Wie kann ich Ihnen heute helfen?';
 
         function formatSocialMediaLinks(text) {
-            let formattedText = text;
             let socialMediaLinks = [];
 
             socialMediaPatterns.forEach(({ pattern, platform, title, description, icon }) => {
@@ -432,12 +431,11 @@
                             description,
                             icon
                         });
-                        formattedText = formattedText.replace(url, `[SOCIAL_MEDIA_LINK:${platform}:${url}]`);
                     });
                 }
             });
 
-            return { formattedText, socialMediaLinks };
+            return { formattedText: text, socialMediaLinks };
         }
 
         function createSocialMediaPreview(url, platform, title, description, icon) {
@@ -469,14 +467,14 @@
             
             if (sender === 'bot') {
                 const result = formatSocialMediaLinks(text);
-                const processedText = marked.parse(result.formattedText);
+                messageDiv.innerHTML = marked.parse(result.formattedText);
                 
-                messageDiv.innerHTML = processedText;
-                
-                result.socialMediaLinks.forEach(({ url, platform, title, description, icon }) => {
-                    const preview = createSocialMediaPreview(url, platform, title, description, icon);
-                    messageDiv.appendChild(preview);
-                });
+                if (result.socialMediaLinks.length > 0) {
+                    result.socialMediaLinks.forEach(({ url, platform, title, description, icon }) => {
+                        const preview = createSocialMediaPreview(url, platform, title, description, icon);
+                        messageDiv.appendChild(preview);
+                    });
+                }
 
                 if (sources && sources.length > 0) {
                     const sourcesDiv = document.createElement('div');
