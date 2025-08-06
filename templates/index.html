@@ -460,7 +460,7 @@
             
             return wrapper;
         }
-
+        
         function addMessage(text, sender, sources = []) {
             const messageDiv = document.createElement('div');
             messageDiv.classList.add('message', sender === 'user' ? 'user-message' : 'bot-message');
@@ -468,14 +468,14 @@
             if (sender === 'bot') {
                 const result = formatSocialMediaLinks(text);
                 messageDiv.innerHTML = marked.parse(result.formattedText);
-                
+            
                 if (result.socialMediaLinks.length > 0) {
                     result.socialMediaLinks.forEach(({ url, platform, title, description, icon }) => {
                         const preview = createSocialMediaPreview(url, platform, title, description, icon);
                         messageDiv.appendChild(preview);
                     });
                 }
-
+        
                 if (sources && sources.length > 0) {
                     const sourcesDiv = document.createElement('div');
                     sourcesDiv.classList.add('sources');
@@ -499,7 +499,20 @@
             }
             
             chatBody.appendChild(messageDiv);
-            chatBody.scrollTop = chatBody.scrollHeight;
+        
+            // --- START OF THE FIX ---
+            // This new logic handles scrolling based on who sent the message.
+            // Your CSS already has 'scroll-behavior: smooth', so it will animate nicely.
+            if (sender === 'bot') {
+                // For bot messages, scroll to align the TOP of the message
+                // with the top of the chat window.
+                messageDiv.scrollIntoView({ block: 'start' });
+            } else {
+                // For user messages, scroll to align the BOTTOM of the message
+                // with the bottom of the chat window to show the latest message.
+                messageDiv.scrollIntoView({ block: 'end' });
+            }
+            // --- END OF THE FIX ---
         }
 
         function initializeChat() {
