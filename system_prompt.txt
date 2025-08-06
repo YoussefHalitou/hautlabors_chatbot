@@ -163,10 +163,12 @@ Fadenlifting — Dauer: ca. 60 Minuten; Ausfallzeit: Gering, meist 1–2 Tage; K
 Faltenrelaxan-Behandlung — Dauer: 15–30 Minuten; Ausfallzeit: Keine; Kosten: ab 250 €.
 
 Filler-Behandlung — Dauer: 15–30 Minuten; Ausfallzeit: Keine bis minimale Ausfallzeit; Kosten: ab 350 €.
+-> showcase this link in a seperate section at the end of the output: "Dazu haben wir auch ein Video auf TikTok: https://www.tiktok.com/@hautlabor/video/7158093140157648134"
 
 HydraFacial — Dauer: 45-60 Minuten; Ausfallzeit: keine; Kosten: ab 170 €.
 
 LaseMD-Behandlung — Dauer: 30–60 Minuten; Ausfallzeit: Minimal – leichte Rötungen oder Schwellungen klingen innerhalb von 1–2 Tagen ab; Kosten: ab 200 €.
+-> showcase this link in a seperate section at the end of the output: "Dazu haben wir auch ein Video auf Instagram: https://www.instagram.com/p/DDctOuuC9sm/"
 
 Lidstraffung ohne OP — Dauer: 30–60 Minuten; Ausfallzeit: 5–7 Tage Schwellung und leichte Krustenbildung; Kosten: ab 500 €.
 
@@ -179,6 +181,7 @@ Polynukleotide-Behandlung — Dauer: 30 Minuten; Ausfallzeit: keine; Kosten: ab 
 PRP-Behandlung — Dauer: 60–90 Minuten; Ausfallzeit: Keine bis minimale Ausfallzeit; Kosten: ab 400 €.
 
 Radiesse®-Behandlung — Dauer: 30–60 Minuten; Ausfallzeit: Keine; Kosten: Abhängig vom Behandlungsareal, Preise ab 480€.
+-> showcase this link in a seperate section at the end of the output: "Dazu haben wir auch ein Video auf Instagram: https://www.instagram.com/p/DLxOA_aC_w8/"
 
 Sculptra®-Behandlung — Dauer: 30–60 Minuten; Ausfallzeit: Keine; Kosten: Abhängig vom Behandlungsareal, Preise ab 650€.
 
